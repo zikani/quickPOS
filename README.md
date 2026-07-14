@@ -1,98 +1,91 @@
-# QuickPOS Terminal
+# 💻 QuickPOS Terminal
+> **Production-grade, standalone PyQt6 Point-of-Sale (POS) desktop application engineered for high-throughput retail operations.**
 
-QuickPOS is a professional, standalone, production-grade **Point-of-Sale (POS) desktop application** engineered in Python utilizing the powerful **PyQt6** GUI framework. Featuring a robust modular backend, offline-first SQLite database layer with SQLAlchemy ORM, and comprehensive services, it is built to handle the rigorous daily workflows of retail businesses securely and efficiently.
-
----
-
-## 🎨 System Highlights
-
-- **Desktop First**: Engineered from the ground up for native desktop performance on Windows, macOS, and Linux.
-- **Offline-First Persistence**: Powered by SQLite with robust ACID transactions and rollback capabilities, ensuring zero data loss on crashes.
-- **Enterprise Architecture**: Designed with a layered Model-View-Service-Repository architecture separating UI widgets from databases.
-- **Modular Design**: Features dedicated services for authentication, checkout sales, product/inventory control, supplier transactions, and analytics reporting.
+[![Language](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![GUI Framework](https://img.shields.io/badge/UI-PyQt6-darkgreen?logo=qt&logoColor=white)](https://www.qt.io/)
+[![Database ORM](https://img.shields.io/badge/ORM-SQLAlchemy-red?logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
+[![Offline Engine](https://img.shields.io/badge/Offline--First-SQLite-blueviolet?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Packager](https://img.shields.io/badge/Bundled_with-PyInstaller-yellow)](https://pyinstaller.org/)
 
 ---
 
-## 🚀 Key Functional Modules
+## 🎨 System Highlights & Architectural Pillars
 
-### 1. Authentication & Security
-- Secure login screen with password hashing.
-- Role-Based Access Control (RBAC) with preconfigured roles: **Admin**, **Manager**, and **Cashier**.
-- Session-state isolation to prevent cross-account leakage.
-
-### 2. POS Checkout Terminal
-- Instant product searches by title, SKU, or barcode scans.
-- Dynamic cart rendering including tax estimation and discounts.
-- Flexible payments supporting Cash, Cards, and Split Payments.
-- Cash change helper calculations and automated stock decrements upon checkout completion.
-- Global keyboard-wedge barcode listener to instantly add products to the checkout basket.
-
-### 3. Inventory & Category Management
-- Multi-tier classification system with automated low-stock warnings.
-- Precise tracking with historical logs for every manual adjustment or sales transaction.
-
-### 4. Supplier & Purchasing CRM
-- Complete supplier directories and order management.
-- Dynamic purchase orders that update inventories automatically upon goods receipt.
-
-### 5. Analytics & Multi-Format Reporting
-- Periodic cash drawer reconciliation, sales summaries, and performance metrics.
-- PDF receipt/invoice fallback generation.
+*   **Desktop-First Architecture:** Crafted specifically for native performance on Windows, macOS, and Linux client machines.
+*   **Offline-First & Fault-Tolerant:** Leverages an embedded, enterprise-configured SQLite layer backed by transaction-safe rollbacks to guarantee data integrity.
+*   **Decoupled Design:** Implements a strict, layered **Model-View-Service-Repository** pattern that isolates database queries from UI layouts.
+*   **Role-Based Views:** Dynamic navigation sidebar adapts menus based on authenticated roles.
 
 ---
 
-## 🏗️ Layered Project Directory Structure
+## 🔑 Access Terminal & Role Permissions Matrix
+
+The login form authorizes operators and immediately restructures the UI layouts based on the account's authority:
+
+| Feature Tab | Cashier Operator | Store Manager | System Admin |
+| :--- | :---: | :---: | :---: |
+| **Checkout terminal** | ✅ Yes | ✅ Yes | ✅ Yes |
+| **Customer CRM** | ✅ Yes | ✅ Yes | ✅ Yes |
+| **Inventory Catalog** | ❌ Blocked | ✅ Yes | ✅ Yes |
+| **Sales Reporting** | ❌ Blocked | ✅ Yes | ✅ Yes |
+| **System Settings / Backups** | ❌ Blocked | ❌ Blocked | ✅ Yes |
+
+### 🛠️ Default Training Accounts:
+*   **Admin Role:** Username: `admin` | Password: `admin123` *(Full System Access)*
+*   **Manager Role:** Username: `manager` | Password: `manager123` *(Sales/Inventory Access)*
+*   **Cashier Role:** Username: `cashier` | Password: `cashier123` *(Checkout Terminal Access)*
+
+---
+
+## 🏗️ Layered Project Structure
 
 ```text
 pos_app/
 ├── main.py                      # Application bootstrap & entry point
 ├── pyproject.toml               # Poetry dependencies (or requirements.txt)
-├── README.md                    # Main project documentation
-├── build_executable.spec        # PyInstaller specification for single-file binaries
+├── README.md                    # Central documentation shell
+├── build_executable.spec        # PyInstaller packaging configuration
 │
 ├── config/
-│   └── settings.py              # Central application configuration & environment management
+│   └── settings.py              # Central settings and system metadata
 │
 ├── core/
-│   ├── session.py               # Singleton state for the active user session
-│   └── exceptions.py            # custom app-wide exception classes
+│   ├── session.py               # Singleton state for user sessions
+│   └── exceptions.py            # Custom POS exception types
 │
 ├── database/
-│   ├── base.py                  # SQLAlchemy engine, session factory, and Declarative Base
-│   ├── init_db.py               # Database bootstrapping and seed script
-│   └── backup.py                # Database backup & restore utility functions
+│   ├── base.py                  # Scoped sessions and engine setup
+│   ├── init_db.py               # Database bootstrapping & seed data
+│   └── backup.py                # Database backup & restore utilities
 │
-├── models/                      # SQLAlchemy ORM Data Models
-│   ├── user.py                  # Users, credentials, and access roles
-│   ├── product.py               # Core products catalog
-│   ├── category.py              # Dynamic item categorizations
-│   ├── customer.py              # Customer relations and loyalty indicators
-│   ├── supplier.py              # Wholesalers and supplier contacts
-│   ├── sale.py                  # Sales headers (invoice_no, tax, totals)
-│   ├── sale_item.py             # Sale item line details (unit price, quantities, discounts)
-│   ├── payment.py               # Record of financial payments
-│   └── audit_log.py             # System-wide immutable operations audit trail
+├── models/                      # SQLAlchemy Declarative Models
+│   ├── user.py                  # User profiles and roles
+│   ├── product.py               # Product metadata & inventory counts
+│   ├── category.py              # Item categories
+│   ├── customer.py              # CRM customer records & loyalty points
+│   ├── supplier.py              # Supplier details
+│   ├── sale.py                  # Sales transaction logs
+│   ├── sale_item.py             # Sale item line details
+│   ├── payment.py               # Transaction payments
+│   └── audit_log.py             # Security audit logs
 │
-├── repositories/                # Data-Access Layer (Encapsulated SQL queries)
+├── repositories/                # Encapsulated SQL Queries (Data-Access Layer)
 │   ├── user_repository.py
 │   ├── product_repository.py
 │   ├── sale_repository.py
 │   └── customer_repository.py
 │
-├── services/                    # Business Logic Layer (Processes and Workflows)
-│   ├── auth_service.py          # Hashing verification & login validation
-│   ├── sales_service.py         # Transaction rollbacks and checkout workflows
-│   ├── inventory_service.py     # Stock decrements and movement logging
-│   └── customer_service.py      # Customer lookups and CRM updates
+├── services/                    # Core Business Logic Layer
+│   ├── auth_service.py          # Hashing & sign-in coordination
+│   ├── sales_service.py         # Transaction commits & cart operations
+│   ├── inventory_service.py     # Stock logs & level warning checks
+│   └── customer_service.py      # Customer profile management
 │
-├── ui/                          # GUI Presentation Layer (PyQt6 views)
-│   ├── main_window.py           # Native QMainWindow sidebar template shell
-│   └── mock_pyqt.py             # Fallback shim for headless development containers
+├── ui/                          # Presentation Layer (PyQt6 views)
+│   ├── main_window.py           # Central shell sidebar layout
+│   └── mock_pyqt.py             # Dev-container headless mockup shim
 │
-├── utils/
-│   └── security.py              # Multi-platform password hashing helpers
-│
-└── tests/                       # Complete verification suite
+└── tests/                       # Automated Test Suites
     └── unit/
         ├── test_inventory_service.py
         └── test_sales_service.py
@@ -102,84 +95,71 @@ pos_app/
 
 ## 🛠️ Local Development Setup
 
-Follow these straightforward steps to run, develop, and test the QuickPOS application on your machine.
+Set up, run, and compile the native application on your local workstation in five minutes:
 
 ### Prerequisites
-- Python 3.11 or higher
-- `pip` or Python virtual environment package (`venv`)
+*   Python 3.11 or higher
+*   Python `venv` virtual environment package
 
-### 1. Clone & Set Up Virtual Environment
-
+### 1. Initialize and Activate Virtual Environment
 ```bash
-# Clone the repository and navigate into the root directory
+# Clone the repository and navigate to root directory
 cd quickpos
 
-# Create a Python virtual environment
+# Create a virtual environment
 python -m venv venv
 
-# Activate the virtual environment
-# On macOS/Linux:
+# Activate the virtual environment:
+# On macOS / Linux:
 source venv/bin/activate
-# On Windows (cmd):
+# On Windows (CMD):
 venv\Scripts\activate.bat
 # On Windows (PowerShell):
 venv\Scripts\Activate.ps1
 ```
 
-### 2. Install Dependencies
-
-Install the required PyQt6, SQLAlchemy, and utility packages:
-
+### 2. Install Project Dependencies
 ```bash
-pip install -r requirements.txt
+pip install PyQt6 SQLAlchemy bcrypt
 ```
 
-*(Alternatively, if your environment uses standard setup, install core packages: `pip install PyQt6 SQLAlchemy bcrypt`)*
-
-### 3. Run the Desktop Application
-
-Execute the central bootstrap script to initialize the SQLite database, seed mock products, and launch the GUI window:
-
+### 3. Run the Native POS Desktop Application
 ```bash
 python pos_app/main.py
 ```
 
 ---
 
-## 🧪 Running the Verification Suite
-
-We use **pytest** to verify application logic. Run the test suite to ensure the business services perform flawlessly:
+## 🧪 Running Automated Unit Tests
+Verify all core services and checkout logic locally using `pytest`:
 
 ```bash
-# Install test requirements
+# Install testing tools
 pip install pytest pytest-qt
 
-# Execute all test assertions
+# Execute testing assertions
 pytest pos_app/tests/
 ```
 
 ---
 
-## 📦 Packaging Standalone Executables
-
-QuickPOS includes a PyInstaller `.spec` configuration file to bundle the entire Python runtime, Qt libraries, and database layers into a standalone, double-clickable application executable.
+## 📦 Bundling Standalone Binaries
+Use `PyInstaller` to compile the Python source, Qt GUI assets, and SQLite engine into a single executable binary:
 
 ```bash
-# Install PyInstaller
+# Install bundle tools
 pip install pyinstaller
 
-# Build a performance-optimized single-file executable for your OS
+# Build target binary
 pyinstaller pos_app/build_executable.spec
 ```
-
-The compiled binaries will be outputted directly to the `/dist/` folder on successful completion.
+The optimized single-file binary will be generated inside the `/dist/` output directory.
 
 ---
 
-## 📚 Supplementary Documentation
+## 📚 Deep Dive Technical Guides
 
-To explore specific areas of the system, consult the following comprehensive resources in the `/docs` folder:
-
-- **[System Architecture Guide](./docs/architecture.md)**: Layered MVC breakdowns, thread models, and signal configurations.
-- **[Database Schema Blueprint](./docs/database_schema.md)**: Tables, attributes, indices, and database relations diagrams.
-- **[POS User Manual](./docs/user_manual.md)**: Operations guidebook for Admins, Managers, and Cashier terminals.
+For comprehensive technical breakdowns, review the following files inside the `/docs` directory:
+*   📄 **[System Architecture Guide](./docs/architecture.md):** In-depth analysis of the Service-Repository pattern, thread management, and signal interfaces.
+*   📄 **[Database Schema Blueprint](./docs/database_schema.md):** Structured index tables, relational foreign keys, column specifications, and diagram mappings.
+*   📄 **[POS Operator Manual](./docs/user_manual.md):** User instructions detailing checkout processes, touch-screen keypad usage, and stock alert workflows.

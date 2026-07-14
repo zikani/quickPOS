@@ -91,16 +91,41 @@ class POSMainWindow(QMainWindow):
         self.nav_title.setAlignment(Qt.AlignCenter)
         self.nav_title.setStyleSheet("color: white; font-size: 18px; font-weight: bold; margin-bottom: 20px;")
         self.sidebar_layout.addWidget(self.nav_title)
+
+        # Profile banner
+        current_user_name = session.current_user.full_name if session.current_user else "Anonymous"
+        current_user_role = session.current_user.role if session.current_user else "Cashier"
         
-        # Nav Buttons
-        navs = [
-            ("Checkout Screen", self.show_pos_view),
-            ("Inventory Manager", self.show_inventory_view),
-            ("Customer CRM", self.show_customer_view),
-            ("Sales Reporting", self.show_reports_view),
-            ("System Settings", self.show_settings_view),
-            ("Sign Out", self.on_logout_clicked)
-        ]
+        self.profile_box = QWidget(self.sidebar)
+        self.profile_box.setStyleSheet("background-color: #1e293b; border-radius: 6px; margin: 10px; padding: 10px;")
+        self.profile_layout = QVBoxLayout(self.profile_box)
+        self.profile_layout.setContentsMargins(10, 10, 10, 10)
+        
+        self.user_name_label = QLabel(current_user_name, self.profile_box)
+        self.user_name_label.setStyleSheet("color: white; font-weight: bold; font-size: 13px;")
+        self.profile_layout.addWidget(self.user_name_label)
+        
+        self.user_role_label = QLabel(f"Role: {current_user_role}", self.profile_box)
+        self.user_role_label.setStyleSheet("color: #3b82f6; font-size: 11px; font-weight: 500;")
+        self.profile_layout.addWidget(self.user_role_label)
+        
+        self.sidebar_layout.addWidget(self.profile_box)
+        
+        # Nav Buttons filtered by Role permissions
+        navs = [("Checkout Screen", self.show_pos_view)]
+        
+        if current_user_role in ["Admin", "Manager"]:
+            navs.append(("Inventory Manager", self.show_inventory_view))
+            
+        navs.append(("Customer CRM", self.show_customer_view))
+        
+        if current_user_role in ["Admin", "Manager"]:
+            navs.append(("Sales Reporting", self.show_reports_view))
+            
+        if current_user_role == "Admin":
+            navs.append(("System Settings", self.show_settings_view))
+            
+        navs.append(("Sign Out", self.on_logout_clicked))
         
         for name, callback in navs:
             btn = QPushButton(name, self.sidebar)
@@ -173,11 +198,11 @@ class POSMainWindow(QMainWindow):
         s_lay.addWidget(s_lbl)
         self.workspace_stack.addWidget(self.settings_screen)
         
-    def show_pos_view(self): self.workspace_stack.setCurrentIndex(0)
-    def show_inventory_view(self): self.workspace_stack.setCurrentIndex(1)
-    def show_customer_view(self): self.workspace_stack.setCurrentIndex(2)
-    def show_reports_view(self): self.workspace_stack.setCurrentIndex(3)
-    def show_settings_view(self): self.workspace_stack.setCurrentIndex(4)
+    def show_pos_view(self): self.workspace_stack.setCurrentWidget(self.pos_screen)
+    def show_inventory_view(self): self.workspace_stack.setCurrentWidget(self.inventory_screen)
+    def show_customer_view(self): self.workspace_stack.setCurrentWidget(self.customer_screen)
+    def show_reports_view(self): self.workspace_stack.setCurrentWidget(self.reports_screen)
+    def show_settings_view(self): self.workspace_stack.setCurrentWidget(self.settings_screen)
     
     def on_logout_clicked(self):
         """Sign out the current user, clearing state and returning to login form."""
