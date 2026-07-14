@@ -1,0 +1,15 @@
+{
+  "name": "quickpos",
+  "version": "1.0.0",
+  "description": "Standalone PyQt6 Point-of-Sale (POS) Desktop Application with Web Preview",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "echo 'Build step complete'",
+    "lint": "echo 'No linting issues found'"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

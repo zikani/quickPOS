@@ -1,0 +1,8 @@
+{
+  "name": "QuickPOS",
+  "description": "A standalone PyQt6 Point-of-Sale (POS) desktop application with SQLite persistence and a beautiful React-based web preview.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

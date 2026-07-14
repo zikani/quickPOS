@@ -1,0 +1,5 @@
+from pos_app.repositories.user_repository import UserRepository
+from pos_app.repositories.product_repository import ProductRepository
+from pos_app.repositories.sale_repository import SaleRepository
+from pos_app.repositories.customer_repository import CustomerRepository
+from pos_app.repositories.inventory_repository import InventoryRepository
