@@ -2044,6 +2044,80 @@
             localStorage.setItem('quickpos_db', JSON.stringify(state));
         }
 
+        // --- 12. GLOBAL BARCODE SCANNER WEDGE LISTENER ---
+        let barcodeBuffer = "";
+        let lastKeyTime = Date.now();
+
+        window.addEventListener('keydown', (e) => {
+            // Only process barcode scanning if logged in
+            if (!activeUser) return;
+
+            const currentTime = Date.now();
+            const timeDiff = currentTime - lastKeyTime;
+            lastKeyTime = currentTime;
+
+            const isAlphanumeric = /^[a-zA-Z0-9]$/.test(e.key);
+            const activeEl = document.activeElement;
+            const isTypingInInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
+            const isPosSearchFocused = activeEl && activeEl.id === 'pos-search';
+
+            if (e.key === 'Enter') {
+                let scannedBarcode = "";
+
+                // 1. If POS search is active, we can use its full typed value (allows manual typing of barcode + Enter)
+                if (isPosSearchFocused) {
+                    scannedBarcode = activeEl.value.trim();
+                } else if (barcodeBuffer.length >= 3) {
+                    // 2. Otherwise, use the fast-accumulated barcode buffer
+                    scannedBarcode = barcodeBuffer.trim();
+                }
+
+                if (scannedBarcode) {
+                    // Find first product matching the barcode or SKU
+                    const matchedProduct = state.products.find(p => p.barcode === scannedBarcode || p.sku.toLowerCase() === scannedBarcode.toLowerCase());
+                    if (matchedProduct) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        barcodeBuffer = "";
+                        
+                        if (isPosSearchFocused) {
+                            activeEl.value = "";
+                            filterPOSProducts();
+                        }
+
+                        // Switch to POS tab so user can see item added
+                        if (activeTab !== 'pos') {
+                            switchTab('pos');
+                        }
+
+                        addToCart(matchedProduct.id);
+                        showToast(`Scanned Barcode: ${matchedProduct.name}`, "success");
+                    }
+                }
+                barcodeBuffer = "";
+            } else if (isAlphanumeric) {
+                // If user is focused on a text input (other than POS Search), we enforce strict timing limit (<100ms)
+                // to distinguish scanner input (keyboard wedge) from manual text typing.
+                if (isTypingInInput && !isPosSearchFocused) {
+                    if (timeDiff > 100) {
+                        barcodeBuffer = "";
+                    }
+                } else {
+                    // Even if no input is focused, reset buffer if there's a long pause between keys
+                    if (timeDiff > 200) {
+                        barcodeBuffer = "";
+                    }
+                }
+                barcodeBuffer += e.key;
+            } else {
+                // Non-alphanumeric keys reset the buffer
+                if (e.key !== 'Shift' && e.key !== 'Control' && e.key !== 'Alt') {
+                    barcodeBuffer = "";
+                }
+            }
+        });
+
     </script>
 </body>
 </html>
