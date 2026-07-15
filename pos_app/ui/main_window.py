@@ -1,5 +1,11 @@
 from pos_app.ui.mock_pyqt import *
 from pos_app.core.session import session
+from pos_app.ui.pos_view import POSView
+from pos_app.ui.inventory_view import InventoryView
+from pos_app.ui.customer_view import CustomerView
+from pos_app.ui.reports_view import ReportsView
+from pos_app.ui.settings_view import SettingsView
+from pos_app.services.backup_service import BackupService
 
 class POSMainWindow(QMainWindow):
     """The central shell of the PyQt6 POS Application, implementing a main menu, status bar and sidebar."""
@@ -56,7 +62,7 @@ class POSMainWindow(QMainWindow):
             border-radius: 6px;
             font-size: 14px;
         """)
-        self.login_btn.clicked = self.on_login_clicked
+        self.login_btn.clicked.connect(self.on_login_clicked)
         self.login_layout.addWidget(self.login_btn)
         
         self.stacked_widget.addWidget(self.login_widget)
@@ -144,7 +150,7 @@ class POSMainWindow(QMainWindow):
                     color: white;
                 }
             """)
-            btn.clicked = callback
+            btn.clicked.connect(callback)
             self.sidebar_layout.addWidget(btn)
             
         self.sidebar_layout.addStretch()
@@ -162,40 +168,47 @@ class POSMainWindow(QMainWindow):
         self.stacked_widget.setCurrentWidget(self.workspace_widget)
         
     def setup_workspace_screens(self):
-        """Create each independent workspace tab panel."""
-        self.pos_screen = QWidget(self)
-        p_lay = QVBoxLayout(self.pos_screen)
-        p_lbl = QLabel("POS Checkout Active Terminal", self.pos_screen)
-        p_lbl.setStyleSheet("font-size: 20px; font-weight: bold;")
-        p_lay.addWidget(p_lbl)
+        """Create each independent workspace tab panel using our high-fidelity modular views."""
+        # Instantiate helper backup service
+        self.backup_service = BackupService()
+        
+        # 1. Checkout Terminal Screen
+        self.pos_screen = POSView(
+            self.sales_service,
+            self.sales_service.product_repo,
+            self.customer_service,
+            self
+        )
         self.workspace_stack.addWidget(self.pos_screen)
         
-        self.inventory_screen = QWidget(self)
-        i_lay = QVBoxLayout(self.inventory_screen)
-        i_lbl = QLabel("Inventory Catalog Management", self.inventory_screen)
-        i_lbl.setStyleSheet("font-size: 20px; font-weight: bold;")
-        i_lay.addWidget(i_lbl)
+        # 2. Inventory Manager Screen
+        self.inventory_screen = InventoryView(
+            self.inventory_service,
+            self.inventory_service.product_repo,
+            self
+        )
         self.workspace_stack.addWidget(self.inventory_screen)
         
-        self.customer_screen = QWidget(self)
-        c_lay = QVBoxLayout(self.customer_screen)
-        c_lbl = QLabel("Customer Relations Management", self.customer_screen)
-        c_lbl.setStyleSheet("font-size: 20px; font-weight: bold;")
-        c_lay.addWidget(c_lbl)
+        # 3. Customer CRM Screen
+        self.customer_screen = CustomerView(
+            self.customer_service,
+            self.customer_service.session_db,
+            self
+        )
         self.workspace_stack.addWidget(self.customer_screen)
         
-        self.reports_screen = QWidget(self)
-        r_lay = QVBoxLayout(self.reports_screen)
-        r_lbl = QLabel("Sales Summary Reports and Analytics", self.reports_screen)
-        r_lbl.setStyleSheet("font-size: 20px; font-weight: bold;")
-        r_lay.addWidget(r_lbl)
+        # 4. Sales Reporting Screen
+        self.reports_screen = ReportsView(
+            self.report_service,
+            self
+        )
         self.workspace_stack.addWidget(self.reports_screen)
         
-        self.settings_screen = QWidget(self)
-        s_lay = QVBoxLayout(self.settings_screen)
-        s_lbl = QLabel("Terminal Settings & SQLite Maintenance", self.settings_screen)
-        s_lbl.setStyleSheet("font-size: 20px; font-weight: bold;")
-        s_lay.addWidget(s_lbl)
+        # 5. System Settings Screen
+        self.settings_screen = SettingsView(
+            self.backup_service,
+            self
+        )
         self.workspace_stack.addWidget(self.settings_screen)
         
     def show_pos_view(self): self.workspace_stack.setCurrentWidget(self.pos_screen)
