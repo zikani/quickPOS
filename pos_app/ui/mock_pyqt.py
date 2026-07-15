@@ -8,7 +8,7 @@ try:
         QComboBox, QSpinBox, QDoubleSpinBox, QFormLayout, QGroupBox, QTabWidget,
         QGridLayout
     )
-    from PyQt6.QtCore import Qt, pyqtSignal, QSize, QTimer
+    from PyQt6.QtCore import Qt as _RealQt, pyqtSignal, QSize, QTimer
     from PyQt6.QtGui import QFont, QIcon, QColor, QPalette
     HAS_PYQT = True
 
@@ -16,24 +16,24 @@ try:
     class QtMeta(type):
         def __getattr__(cls, name):
             if name == 'AlignCenter':
-                return Qt.AlignmentFlag.AlignCenter
+                return _RealQt.AlignmentFlag.AlignCenter
             elif name == 'AlignLeft':
-                return Qt.AlignmentFlag.AlignLeft
+                return _RealQt.AlignmentFlag.AlignLeft
             elif name == 'AlignRight':
-                return Qt.AlignmentFlag.AlignRight
+                return _RealQt.AlignmentFlag.AlignRight
             elif name == 'AlignVCenter':
-                return Qt.AlignmentFlag.AlignVCenter
+                return _RealQt.AlignmentFlag.AlignVCenter
             elif name == 'Password':
                 return QLineEdit.EchoMode.Password
             elif name == 'Horizontal':
-                return Qt.Orientation.Horizontal
+                return _RealQt.Orientation.Horizontal
             elif name == 'Vertical':
-                return Qt.Orientation.Vertical
+                return _RealQt.Orientation.Vertical
             elif name == 'KeepAspectRatio':
-                return Qt.AspectRatioMode.KeepAspectRatio
+                return _RealQt.AspectRatioMode.KeepAspectRatio
             elif name == 'SmoothTransformation':
-                return Qt.TransformationMode.SmoothTransformation
-            return getattr(Qt, name)
+                return _RealQt.TransformationMode.SmoothTransformation
+            return getattr(_RealQt, name)
 
     class QtPatch(metaclass=QtMeta):
         pass
