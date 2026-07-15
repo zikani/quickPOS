@@ -71,3 +71,81 @@ class InventoryService:
             if p.stock_qty <= limit:
                 low_stock.append(p)
         return low_stock
+
+    def get_all_suppliers(self) -> list:
+        """Query and return all supplier accounts."""
+        from pos_app.models.supplier import Supplier
+        return self.session_db.query(Supplier).order_by(Supplier.name.asc()).all()
+
+    def get_purchase_orders(self) -> list:
+        """Query and return all purchase orders with supplier join details."""
+        from pos_app.models.purchase_order import PurchaseOrder
+        return self.session_db.query(PurchaseOrder).order_by(PurchaseOrder.created_at.desc()).all()
+
+    def get_purchase_order_items(self, po_id: int) -> list:
+        """Retrieve all items within a purchase order with product details."""
+        from pos_app.models.purchase_order import PurchaseOrderItem
+        return self.session_db.query(PurchaseOrderItem).filter(PurchaseOrderItem.po_id == po_id).all()
+
+    def create_purchase_order(self, supplier_id: int, items_data: list[dict]) -> object:
+        """
+        Draft a new pending Purchase Order in the database.
+        items_data format: [{"product_id": int, "qty": float, "unit_cost": float}]
+        """
+        from pos_app.models.purchase_order import PurchaseOrder, PurchaseOrderItem
+        po = PurchaseOrder(supplier_id=supplier_id, status='Pending')
+        self.session_db.add(po)
+        self.session_db.flush() # Populate auto-incremented PO ID
+        
+        for item in items_data:
+            po_item = PurchaseOrderItem(
+                po_id=po.id,
+                product_id=item['product_id'],
+                qty=item['qty'],
+                unit_cost=item['unit_cost']
+            )
+            self.session_db.add(po_item)
+            
+        self.session_db.commit()
+        return po
+
+    def receive_purchase_order(self, po_id: int) -> bool:
+        """Mark PO as Received, increment stock levels, and log inventory restock adjustments."""
+        from pos_app.models.purchase_order import PurchaseOrder, PurchaseOrderItem
+        from pos_app.models.inventory_log import InventoryLog
+        po = self.session_db.query(PurchaseOrder).filter(PurchaseOrder.id == po_id).first()
+        if not po or po.status != 'Pending':
+            return False
+            
+        items = self.session_db.query(PurchaseOrderItem).filter(PurchaseOrderItem.po_id == po_id).all()
+        user_id = session.current_user.id if session.current_user else 1
+        
+        for item in items:
+            product = self.session_db.query(Product).filter(Product.id == item.product_id).first()
+            if product:
+                # Increment the physical stock count
+                product.stock_qty += item.qty
+                # Log the restock audit trail record
+                log = InventoryLog(
+                    product_id=product.id,
+                    change_qty=item.qty,
+                    reason=f"Wholesale PO #{po_id} Received",
+                    user_id=user_id
+                )
+                self.session_db.add(log)
+                
+        po.status = 'Received'
+        self.session_db.commit()
+        return True
+
+    def cancel_purchase_order(self, po_id: int) -> bool:
+        """Void/cancel a pending Purchase Order."""
+        from pos_app.models.purchase_order import PurchaseOrder
+        po = self.session_db.query(PurchaseOrder).filter(PurchaseOrder.id == po_id).first()
+        if not po or po.status != 'Pending':
+            return False
+            
+        po.status = 'Cancelled'
+        self.session_db.commit()
+        return True
+

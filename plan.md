@@ -13,14 +13,36 @@ This document maps out the system's architecture, identifies the features curren
 - **Service-Oriented Business Logic:**
   - `AuthService`: Secure password hash validations and user session coordination.
   - `SalesService`: Multi-step database transaction operations with automated rollbacks on failure.
-  - `InventoryService`: Stock movement logs, inventory adjustments, and warning checks.
+  - `InventoryService`: Stock movement logs, inventory adjustments, and warning checks. Also integrates robust APIs to draft wholesale Purchase Orders, void orders, and receive items.
   - `CustomerService`: Customer profile creation and history logs.
-  - `ReportService`: Periodical financial totals and performance summaries.
+  - `ReportService`: Periodical financial totals and performance summaries, including daily sales over time and category-wise sales breakup statistics.
   - `BackupService`: Live SQLite database backup copies and restructures.
-  - `ReceiptService`: Direct local file receipt outputs.
+  - `ReceiptService`: Direct local file receipt outputs, and compiles raw ESC/POS binary templates.
 - **Role-Based Access Control (RBAC):**
   - Fully integrated session managers identifying `Admin`, `Manager`, and `Cashier` roles.
   - Preconfigured training credentials loaded into the seeded database.
+
+### 🔌 Hardware & Local Integrations (Complete)
+- **Direct ESC/POS Thermal Printer Support:**
+  - Native USB driver handshakes (Class 7 printers via endpoints) and serial print queues (`/dev/usb/lp0` fallbacks) compiling and sending raw ESC/POS binary templates directly.
+- **Direct Camera Barcode Reader Integration:**
+  - Interactive webcam reader dialog that spins up a real-time thread to capture, grayscalize, and decode physical barcodes instantly using OpenCV and `pyzbar`.
+- **Automated DB Backup Scheduler Thread:**
+  - High-reliability background daemon thread (`BackupScheduler`) executing hot SQLite snapshots hourly, with safe termination procedures on window close.
+
+### 🖥️ High-Fidelity Desktop UI Views (Complete)
+- **Checkout Terminal (`pos_screen`):**
+  - High-fidelity visual split-pane design. Left side includes search bars, a camera scanner trigger, and interactive product grids. Right side includes a transaction cart table, tax calculations, and a payment processing panel.
+- **Inventory & Procurement Manager (`inventory_screen`):**
+  - Dual-tab workflow. Tab 1 handles the Product Catalog with search filters, automatic low-stock alerting widgets, and instant adjust dialogs. Tab 2 exposes a wholesale procurement archive where users can draft purchase orders using multi-line item builders and receive goods.
+- **Customer CRM Profile Portal (`customer_screen`):**
+  - Visual panel to create new profiles and review client list details with dynamic loyalty indicators.
+- **Interactive Reports Dashboard (`reports_screen`):**
+  - Dynamic analytical charts (Sales Over Time and Product Category Breakdowns) custom-drawn via headless PyQt painting engines, shift summaries, and physical exporter drivers producing standard PDF summaries (via ReportLab) and Excel spreadsheets (via OpenPyXL).
+- **System Settings Configuration (`settings_screen`):**
+  - Displays backup archive lists, lets users run manual DB backups or file restorations, and provides customizable tax settings.
+- **Main Window Layout & RBAC:**
+  - Collapsible elegant navigation menus with automatic tab-access filtering and real-time user-privilege headers.
 
 ### 🧪 Quality Assurance & CI/CD Portability (Complete)
 - **Headless PyQt6 Compilation Shim (`ui/mock_pyqt.py`):**
@@ -29,43 +51,11 @@ This document maps out the system's architecture, identifies the features curren
 - **Automated Tests:**
   - Automated unit tests covering core transactions, inventory decrements, and sales rollbacks (`pos_app/tests/`).
 
-### 🖥️ Desktop UI Layout Structures (Complete)
-- **Main Window Layout:**
-  - Dynamic `QMainWindow` containing collapsible sidebar and a central workspace stack widget.
-- **Dynamic Permission Menus:**
-  - Filters sidebar navigation based on active roles (e.g. Cashier sees only POS and CRM tabs; Manager adds Inventory and Reports; Admin gains full System Settings access).
-- **Profile Banners:**
-  - Sidebar renders visual boxes identifying the logged-in user and their current privilege level.
-
 ---
 
-## 2. Features Not Implemented / Stubbed in Python GUI
-
-The following desktop frontend components are currently stubbed as placeholder views with standard PyQt labels inside the desktop application UI stack, pending high-fidelity graphical layout expansion:
-
-- **High-Fidelity Tab Layouts:**
-  - `pos_screen`: Missing interactive product lookup lists, dynamic cart grids, tax summary cards, and quick-add panels.
-  - `inventory_screen`: Missing search/filter product tables, restock forms, and categorical sliders.
-  - `customer_screen`: Missing customer profiles, input fields, and purchase histories.
-  - `reports_screen`: Missing charts, export formats, and shift logs.
-  - `settings_screen`: Missing backup/restore file-pickers and terminal key configuration.
-- **Dialogs & Overlays:**
-  - Payment details forms (split tender calculation, card reader handshakes).
-  - Cashier shift reconciliation popups.
-  - Product category management dialogs.
-- **QSS Visual Themes:**
-  - Dedicated External stylesheet files (`light_theme.qss` & `dark_theme.qss`) have not yet been written or loaded to style standard Qt Widgets.
-
----
-
-## 3. Features to Add (Future Roadmap)
+## 2. Features to Add (Future Roadmap)
 
 - **Cloud Synchronization & Database Migrations:**
   - Alembic migration scripts to upgrade database states.
   - Multi-warehouse support and automatic background synchronization to remote cloud PostgreSQL databases.
-- **Direct ESC/POS Thermal Printer Support:**
-  - Native driver handshakes using pyusb or serial ports to print physical 80mm thermal receipts directly.
-- **Direct Barcode Camera Reader Integration:**
-  - Interactive camera feed on the side panel using `pyzbar` to capture and translate product barcodes on machines without dedicated hardware scanner guns.
-- **Automated DB Backup Scheduler:**
-  - Background thread scheduler automatically performing zipped DB database backups to offline drives hourly.
+

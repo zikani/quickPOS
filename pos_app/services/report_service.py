@@ -83,3 +83,31 @@ class ReportService:
                 "revenue_total": r.revenue_total
             })
         return performance
+
+    def get_sales_over_time(self) -> list[dict]:
+        """Aggregate sales by date (last 10 days)."""
+        sales = self.session_db.query(Sale).filter(Sale.status == 'Completed').order_by(Sale.created_at.asc()).all()
+        by_date = {}
+        for sale in sales:
+            date_str = sale.created_at.strftime('%Y-%m-%d')
+            by_date[date_str] = by_date.get(date_str, 0.0) + sale.grand_total
+        
+        sorted_dates = sorted(by_date.keys())
+        return [{"date": d, "revenue": by_date[d]} for d in sorted_dates][-10:]
+
+    def get_category_breakup(self) -> list[dict]:
+        """Aggregate sales revenue by product category."""
+        from pos_app.models.category import Category
+        results = self.session_db.query(
+            Category.name,
+            func.sum(SaleItem.line_total).label('revenue')
+        ).select_from(SaleItem)\
+         .join(Product, Product.id == SaleItem.product_id)\
+         .join(Category, Category.id == Product.category_id)\
+         .join(Sale, Sale.id == SaleItem.sale_id)\
+         .filter(Sale.status == 'Completed')\
+         .group_by(Category.name)\
+         .order_by(func.sum(SaleItem.line_total).desc()).all()
+         
+        return [{"category": r[0], "revenue": r[1]} for r in results]
+

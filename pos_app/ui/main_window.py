@@ -169,8 +169,11 @@ class POSMainWindow(QMainWindow):
         
     def setup_workspace_screens(self):
         """Create each independent workspace tab panel using our high-fidelity modular views."""
-        # Instantiate helper backup service
+        # Instantiate helper backup service and start background automated scheduler
         self.backup_service = BackupService()
+        from pos_app.services.backup_service import BackupScheduler
+        self.backup_scheduler = BackupScheduler(self.backup_service)
+        self.backup_scheduler.start()
         
         # 1. Checkout Terminal Screen
         self.pos_screen = POSView(
@@ -223,3 +226,10 @@ class POSMainWindow(QMainWindow):
         self.username_input.clear()
         self.password_input.clear()
         self.stacked_widget.setCurrentIndex(0)
+
+    def closeEvent(self, event):
+        """Gracefully stop background threads on program exit."""
+        if hasattr(self, 'backup_scheduler') and self.backup_scheduler:
+            print("[*] Main Window close event: stopping Backup Scheduler thread...")
+            self.backup_scheduler.stop()
+        event.accept()

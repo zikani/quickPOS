@@ -49,6 +49,11 @@ class POSView(QWidget):
         self.search_btn.setStyleSheet("background-color: #3b82f6; color: white; padding: 6px 12px; font-weight: bold; border-radius: 4px;")
         self.search_btn.clicked.connect(self.on_search_triggered)
         self.search_layout.addWidget(self.search_btn)
+
+        self.camera_scan_btn = QPushButton("📷 Scan with Camera", self.search_box)
+        self.camera_scan_btn.setStyleSheet("background-color: #ec4899; color: white; padding: 6px 12px; font-weight: bold; border-radius: 4px;")
+        self.camera_scan_btn.clicked.connect(self.on_camera_scan_clicked)
+        self.search_layout.addWidget(self.camera_scan_btn)
         
         self.left_layout.addWidget(self.search_box)
 
@@ -244,6 +249,31 @@ class POSView(QWidget):
             
         self.refresh_products(query)
 
+    def on_camera_scan_clicked(self):
+        """Open the real-time webcam frame camera dialog to scan physical barcodes."""
+        try:
+            import cv2
+            from pyzbar import pyzbar
+        except ImportError:
+            QMessageBox.critical(
+                self,
+                "Driver Error",
+                "Camera barcode scanning requires OpenCV (cv2) and Pyzbar libraries!\n"
+                "Please run: pip install opencv-python pyzbar"
+            )
+            return
+
+        dialog = CameraScannerDialog(self)
+        if dialog.exec() == QDialog.Accepted and dialog.barcode:
+            barcode_str = dialog.barcode
+            # Find and add product matching decoded barcode
+            match = self.product_repo.get_by_barcode(barcode_str)
+            if match:
+                self.add_by_id(match.id)
+                QMessageBox.information(self, "Item Scanned", f"Successfully scanned and added:\n{match.name}")
+            else:
+                QMessageBox.warning(self, "Scan Result", f"Scanned barcode: {barcode_str}\nHowever, no catalog item matches this barcode.")
+
     def add_by_sku(self, sku: str):
         prod = self.product_repo.get_by_sku(sku)
         if prod:
@@ -384,11 +414,18 @@ class POSView(QWidget):
                     customer_id=self.selected_customer_id
                 )
                 
+                # Execute direct physical printing via USB/Serial thermal receipt printer driver
+                from pos_app.services.receipt_service import ReceiptService
+                receipt_service = ReceiptService(self.sales_service.session_db)
+                printed = receipt_service.print_to_physical_printer(sale.id)
+                
+                print_msg = "\n(Receipt printed automatically to physical thermal printer)" if printed else "\n(Physical printer offline, receipt printed to logging console)"
+                
                 # Show receipt confirmation dialog
                 QMessageBox.information(
                     self, 
                     "Transaction Succeeded", 
-                    f"Sale completed successfully!\nInvoice No: {sale.invoice_no}\nTotal: ${sale.grand_total:.2f}\n\nStock adjusted and loyalty points issued!"
+                    f"Sale completed successfully!\nInvoice No: {sale.invoice_no}\nTotal: ${sale.grand_total:.2f}{print_msg}\n\nStock adjusted and loyalty points issued!"
                 )
                 
                 # Reset Terminal State
@@ -487,3 +524,93 @@ class PaymentDialog(QDialog):
 
     def get_payment_details(self) -> tuple[str, str]:
         return self.method_combo.currentText(), self.ref_input.text().strip()
+
+
+class CameraThread(QThread):
+    barcode_scanned = pyqtSignal(str)
+    frame_updated = pyqtSignal(object)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.running = True
+
+    def run(self):
+        try:
+            import cv2
+            from pyzbar import pyzbar
+        except ImportError:
+            return
+
+        cap = cv2.VideoCapture(0)
+        while self.running:
+            ret, frame = cap.read()
+            if not ret or frame is None:
+                continue
+            
+            # Grayscale conversions improve reader threshold accuracy
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            barcodes = pyzbar.decode(gray)
+            for b in barcodes:
+                data_str = b.data.decode('utf-8')
+                if data_str:
+                    self.barcode_scanned.emit(data_str)
+                    self.running = False
+                    break
+            
+            self.frame_updated.emit(frame)
+            self.msleep(30)
+            
+        cap.release()
+
+    def stop(self):
+        self.running = False
+        self.wait()
+
+
+class CameraScannerDialog(QDialog):
+    """Real-time camera dialog rendering raw OpenCV feeds and decoding barcodes with pyzbar."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Camera Barcode Reader")
+        self.setMinimumSize(500, 400)
+        self.barcode = None
+        
+        self.layout = QVBoxLayout(self)
+        self.lbl_feed = QLabel("Initializing webcam feed...", self)
+        self.lbl_feed.setAlignment(Qt.AlignCenter)
+        self.lbl_feed.setStyleSheet("background-color: black; color: white; border-radius: 6px;")
+        self.layout.addWidget(self.lbl_feed, stretch=1)
+        
+        self.cancel_btn = QPushButton("Cancel Scan", self)
+        self.cancel_btn.setStyleSheet("background-color: #ef4444; color: white; padding: 10px; font-weight: bold; border-radius: 4px;")
+        self.cancel_btn.clicked.connect(self.reject)
+        self.layout.addWidget(self.cancel_btn)
+        
+        self.thread = CameraThread(self)
+        self.thread.barcode_scanned.connect(self.on_barcode_scanned)
+        self.thread.frame_updated.connect(self.on_frame_updated)
+        self.thread.start()
+        
+    def on_frame_updated(self, frame):
+        try:
+            import cv2
+            h, w, ch = frame.shape
+            bytes_per_line = ch * w
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            q_img = QImage(rgb_frame.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
+            self.lbl_feed.setPixmap(QPixmap.fromImage(q_img).scaled(self.lbl_feed.width(), self.lbl_feed.height(), Qt.AspectRatioMode.KeepAspectRatio))
+        except Exception:
+            pass
+            
+    def on_barcode_scanned(self, barcode):
+        self.barcode = barcode
+        self.accept()
+        
+    def closeEvent(self, event):
+        self.thread.stop()
+        event.accept()
+        
+    def reject(self):
+        self.thread.stop()
+        super().reject()
+

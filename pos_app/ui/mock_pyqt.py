@@ -3,13 +3,13 @@ import sys
 try:
     from PyQt6.QtWidgets import (
         QApplication, QMainWindow, QWidget, QDialog, QVBoxLayout, QHBoxLayout,
-        QPushButton, QLabel, QLineEdit, QTableWidget, QTableWidgetItem, QHeaderView,
+        QPushButton, QLabel, QLineEdit, QTableWidget, QTableWidgetItem, QHeaderView as _RealQHeaderView,
         QMessageBox, QStackedWidget, QListWidget, QListWidgetItem, QFrame,
         QComboBox, QSpinBox, QDoubleSpinBox, QFormLayout, QGroupBox, QTabWidget,
         QGridLayout
     )
-    from PyQt6.QtCore import Qt as _RealQt, pyqtSignal, QSize, QTimer
-    from PyQt6.QtGui import QFont, QIcon, QColor, QPalette
+    from PyQt6.QtCore import Qt as _RealQt, pyqtSignal, QSize, QTimer, QThread
+    from PyQt6.QtGui import QFont, QIcon, QColor, QPalette, QPainter, QPen, QBrush, QImage, QPixmap
     HAS_PYQT = True
 
     # Metaclass proxy to map legacy PyQt5-style Qt names to PyQt6-scoped enums
@@ -36,9 +36,38 @@ try:
             return getattr(_RealQt, name)
 
     class QtPatch(metaclass=QtMeta):
-        pass
+        AlignCenter = _RealQt.AlignmentFlag.AlignCenter
+        AlignLeft = _RealQt.AlignmentFlag.AlignLeft
+        AlignRight = _RealQt.AlignmentFlag.AlignRight
+        AlignVCenter = _RealQt.AlignmentFlag.AlignVCenter
+        Password = QLineEdit.EchoMode.Password
+        Horizontal = _RealQt.Orientation.Horizontal
+        Vertical = _RealQt.Orientation.Vertical
+        KeepAspectRatio = _RealQt.AspectRatioMode.KeepAspectRatio
+        SmoothTransformation = _RealQt.TransformationMode.SmoothTransformation
 
     Qt = QtPatch
+
+    # Metaclass proxy to map legacy PyQt5-style QHeaderView names to PyQt6-scoped enums
+    class QHeaderViewMeta(type):
+        def __getattr__(cls, name):
+            if name == 'Stretch':
+                return _RealQHeaderView.ResizeMode.Stretch
+            elif name == 'Interactive':
+                return _RealQHeaderView.ResizeMode.Interactive
+            elif name == 'Fixed':
+                return _RealQHeaderView.ResizeMode.Fixed
+            elif name == 'ResizeToContents':
+                return _RealQHeaderView.ResizeMode.ResizeToContents
+            return getattr(_RealQHeaderView, name)
+
+    class QHeaderViewPatch(metaclass=QHeaderViewMeta):
+        Stretch = _RealQHeaderView.ResizeMode.Stretch
+        Interactive = _RealQHeaderView.ResizeMode.Interactive
+        Fixed = _RealQHeaderView.ResizeMode.Fixed
+        ResizeToContents = _RealQHeaderView.ResizeMode.ResizeToContents
+
+    QHeaderView = QHeaderViewPatch
 except ImportError:
     HAS_PYQT = False
     
@@ -155,6 +184,10 @@ except ImportError:
         def setTextAlignment(self, *args): pass
         
     class QHeaderView:
+        Stretch = 1
+        Interactive = 2
+        Fixed = 3
+        ResizeToContents = 4
         def setSectionResizeMode(self, *args): pass
         def setStretchLastSection(self, *args): pass
         
@@ -254,6 +287,24 @@ except ImportError:
         @staticmethod
         def singleShot(*args): pass
         
+    class QThread:
+        def __init__(self, parent=None): pass
+        def start(self): pass
+        def stop(self): pass
+        def wait(self): pass
+        def msleep(self, ms: int): pass
+        
+    class QImage:
+        class Format:
+            Format_RGB888 = 1
+        def __init__(self, *args, **kwargs): pass
+        
+    class QPixmap:
+        def __init__(self, *args, **kwargs): pass
+        @staticmethod
+        def fromImage(img): return QPixmap()
+        def scaled(self, *args, **kwargs): return self
+        
     class QFont:
         def __init__(self, *args, **kwargs): pass
         def setBold(self, *args): pass
@@ -266,6 +317,24 @@ except ImportError:
         
     class QPalette:
         pass
+        
+    class QPainter:
+        def __init__(self, *args): pass
+        def begin(self, *args): return True
+        def end(self): pass
+        def setPen(self, *args): pass
+        def setBrush(self, *args): pass
+        def drawLine(self, *args): pass
+        def drawRect(self, *args): pass
+        def drawText(self, *args): pass
+        def drawEllipse(self, *args): pass
+        def setRenderHint(self, *args): pass
+        
+    class QPen:
+        def __init__(self, *args, **kwargs): pass
+        
+    class QBrush:
+        def __init__(self, *args, **kwargs): pass
         
     def pyqtSignal(*args, **kwargs):
         class DummySignal:

@@ -75,6 +75,22 @@ class ReportsView(QWidget):
 
         self.main_layout.addWidget(self.metrics_container)
 
+        # ================= MIDDLE PANEL: Interactive Visual Charts =================
+        self.charts_container = QWidget(self)
+        self.charts_layout = QHBoxLayout(self.charts_container)
+        self.charts_layout.setContentsMargins(0, 0, 0, 0)
+        self.charts_layout.setSpacing(15)
+        
+        from pos_app.ui.chart_widgets import SalesOverTimeChart, CategoryBreakdownChart
+        self.sales_chart = SalesOverTimeChart(self.charts_container)
+        self.sales_chart.setMinimumHeight(240)
+        self.category_chart = CategoryBreakdownChart(self.charts_container)
+        self.category_chart.setMinimumHeight(240)
+        
+        self.charts_layout.addWidget(self.sales_chart, stretch=1)
+        self.charts_layout.addWidget(self.category_chart, stretch=1)
+        self.main_layout.addWidget(self.charts_container)
+
         # ================= BOTTOM PANEL: Split Tables (Cashiers & Products) =================
         self.tables_container = QWidget(self)
         self.tables_layout = QHBoxLayout(self.tables_container)
@@ -150,7 +166,14 @@ class ReportsView(QWidget):
         self.lbl_disc_val.setText(f"${summary['total_discount']:.2f}")
         self.lbl_prof_val.setText(f"${summary['net_profit']:.2f} ({summary['profit_margin_pct']:.1f}%)")
 
-        # 2. Cashier Performances Table
+        # 2. Update Charts with live data
+        sales_data = self.report_service.get_sales_over_time()
+        self.sales_chart.setData(sales_data)
+        
+        cat_data = self.report_service.get_category_breakup()
+        self.category_chart.setData(cat_data)
+
+        # 3. Cashier Performances Table
         self.cashier_table.setRowCount(0)
         cashiers = self.report_service.get_cashier_performance()
         self.cashier_table.setRowCount(len(cashiers))
@@ -159,7 +182,7 @@ class ReportsView(QWidget):
             self.cashier_table.setItem(index, 1, QTableWidgetItem(f"{row['sales_count']} sales"))
             self.cashier_table.setItem(index, 2, QTableWidgetItem(f"${row['revenue_total']:.2f}"))
 
-        # 3. Best Selling Products Table
+        # 4. Best Selling Products Table
         self.bestsellers_table.setRowCount(0)
         bestsellers = self.report_service.get_top_selling_products(limit=8)
         self.bestsellers_table.setRowCount(len(bestsellers))
@@ -169,17 +192,45 @@ class ReportsView(QWidget):
             self.bestsellers_table.setItem(index, 2, QTableWidgetItem(f"${row['total_sales']:.2f}"))
 
     def on_export_pdf_clicked(self):
-        """Simulate dynamic pdf report export."""
-        QMessageBox.information(
-            self,
-            "PDF Export",
-            "Financial statements PDF exported successfully!\nSaved to locally configured receipt paths."
-        )
+        """Export dynamic high-fidelity financial summary statement PDF."""
+        import os
+        from pos_app.utils.export_helpers import export_pdf_summary_file
+        
+        summary = self.report_service.get_sales_summary()
+        cashiers = self.report_service.get_cashier_performance()
+        bestsellers = self.report_service.get_top_selling_products(limit=8)
+        
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        filepath = os.path.join(base_dir, "executive_sales_summary.pdf")
+        
+        success = export_pdf_summary_file(filepath, summary, cashiers, bestsellers)
+        if success:
+            QMessageBox.information(
+                self,
+                "PDF Exported",
+                f"Financial statements PDF exported successfully!\nSaved to: {os.path.abspath(filepath)}"
+            )
+        else:
+            QMessageBox.critical(self, "Export Failed", "Could not generate or write the PDF report file.")
 
     def on_export_excel_clicked(self):
-        """Simulate dynamic excel sheet exports."""
-        QMessageBox.information(
-            self,
-            "Excel Export",
-            "Itemized catalog sales spreadsheet exported successfully!"
-        )
+        """Export dynamic itemized catalog sales spreadsheet workbook."""
+        import os
+        from pos_app.utils.export_helpers import export_excel_summary_file
+        
+        summary = self.report_service.get_sales_summary()
+        cashiers = self.report_service.get_cashier_performance()
+        bestsellers = self.report_service.get_top_selling_products(limit=8)
+        
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        filepath = os.path.join(base_dir, "itemized_catalog_sales.xlsx")
+        
+        success = export_excel_summary_file(filepath, summary, cashiers, bestsellers)
+        if success:
+            QMessageBox.information(
+                self,
+                "Excel Exported",
+                f"Itemized catalog sales spreadsheet exported successfully!\nSaved to: {os.path.abspath(filepath)}"
+            )
+        else:
+            QMessageBox.critical(self, "Export Failed", "Could not generate or write the Excel workbook file.")

@@ -6,6 +6,7 @@ from pos_app.services.sales_service import SalesService
 from pos_app.services.inventory_service import InventoryService
 from pos_app.models.user import User
 from pos_app.models.customer import Customer
+from pos_app.models.product import Product
 from pos_app.models.sale import Sale
 from pos_app.models.sale_item import SaleItem
 from pos_app.models.payment import Payment
