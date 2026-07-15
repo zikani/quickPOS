@@ -1,0 +1,11 @@
+# Core POS Application Dependencies
+SQLAlchemy>=2.0.0
+bcrypt>=4.0.0
+PyQt6>=6.4.0
+
+# Testing and Automation Dependencies
+pytest>=7.2.1
+pytest-qt>=4.2.0
+
+# Packaging & Bundling
+pyinstaller>=5.8.0
