@@ -23,7 +23,7 @@ class ReportsView(QWidget):
 
         # Card 1: Total Sales Revenue
         self.card_rev = QFrame(self.metrics_container)
-        self.card_rev.setFrameShape(QFrame.StyledPanel)
+        self.card_rev.setFrameShape(QFrame.Shape.StyledPanel)
         self.card_rev.setStyleSheet("background-color: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px;")
         self.rev_layout = QVBoxLayout(self.card_rev)
         self.lbl_rev_title = QLabel("Gross Revenue", self.card_rev)
@@ -36,7 +36,7 @@ class ReportsView(QWidget):
 
         # Card 2: Transactions Count
         self.card_tx = QFrame(self.metrics_container)
-        self.card_tx.setFrameShape(QFrame.StyledPanel)
+        self.card_tx.setFrameShape(QFrame.Shape.StyledPanel)
         self.card_tx.setStyleSheet("background-color: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px;")
         self.tx_layout = QVBoxLayout(self.card_tx)
         self.lbl_tx_title = QLabel("Sales Transactions", self.card_tx)
@@ -49,7 +49,7 @@ class ReportsView(QWidget):
 
         # Card 3: Discounts Issued
         self.card_disc = QFrame(self.metrics_container)
-        self.card_disc.setFrameShape(QFrame.StyledPanel)
+        self.card_disc.setFrameShape(QFrame.Shape.StyledPanel)
         self.card_disc.setStyleSheet("background-color: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px;")
         self.disc_layout = QVBoxLayout(self.card_disc)
         self.lbl_disc_title = QLabel("Total Discounts", self.card_disc)
@@ -62,7 +62,7 @@ class ReportsView(QWidget):
 
         # Card 4: Net Profit
         self.card_prof = QFrame(self.metrics_container)
-        self.card_prof.setFrameShape(QFrame.StyledPanel)
+        self.card_prof.setFrameShape(QFrame.Shape.StyledPanel)
         self.card_prof.setStyleSheet("background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;")
         self.prof_layout = QVBoxLayout(self.card_prof)
         self.lbl_prof_title = QLabel("Net Business Profit", self.card_prof)
@@ -108,7 +108,7 @@ class ReportsView(QWidget):
         self.cashier_table.setColumnCount(3)
         self.cashier_table.setHorizontalHeaderLabels(["Operator Name", "Ticket count", "Revenue Value"])
         self.cashier_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.cashier_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.cashier_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.cashier_layout.addWidget(self.cashier_table)
         
         self.tables_layout.addWidget(self.cashier_box)
@@ -124,7 +124,7 @@ class ReportsView(QWidget):
         self.bestsellers_table.setColumnCount(3)
         self.bestsellers_table.setHorizontalHeaderLabels(["Product Name", "Units Sold", "Total sales"])
         self.bestsellers_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.bestsellers_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.bestsellers_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.product_layout.addWidget(self.bestsellers_table)
 
         self.tables_layout.addWidget(self.product_box)

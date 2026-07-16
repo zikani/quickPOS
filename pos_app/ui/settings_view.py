@@ -106,7 +106,7 @@ class SettingsView(QWidget):
         self.backups_table.setColumnCount(2)
         self.backups_table.setHorizontalHeaderLabels(["Archive File", "Action"])
         self.backups_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.backups_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.backups_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.right_layout.addWidget(self.backups_table)
 
         self.main_layout.addWidget(self.right_panel, stretch=1)

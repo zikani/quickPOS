@@ -68,8 +68,8 @@ class POSView(QWidget):
         self.products_table.setColumnCount(4)
         self.products_table.setHorizontalHeaderLabels(["Name", "SKU", "Price", "Action"])
         self.products_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.products_table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.products_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.products_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.products_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.products_table.cellDoubleClicked.connect(self.on_product_double_clicked)
         self.results_layout.addWidget(self.products_table)
         
@@ -144,14 +144,14 @@ class POSView(QWidget):
         self.cart_table.setColumnCount(4)
         self.cart_table.setHorizontalHeaderLabels(["Item", "Price", "Qty", "Total"])
         self.cart_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.cart_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.cart_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.cart_layout.addWidget(self.cart_table)
         
         self.right_layout.addWidget(self.cart_box, stretch=2)
 
         # Totals Summary Card
         self.totals_card = QFrame(self.right_panel)
-        self.totals_card.setFrameShape(QFrame.StyledPanel)
+        self.totals_card.setFrameShape(QFrame.Shape.StyledPanel)
         self.totals_card.setStyleSheet("""
             QFrame {
                 background-color: #1e293b;

@@ -6,7 +6,7 @@ try:
         QPushButton, QLabel, QLineEdit, QTableWidget, QTableWidgetItem, QHeaderView as _RealQHeaderView,
         QMessageBox, QStackedWidget, QListWidget, QListWidgetItem, QFrame,
         QComboBox, QSpinBox, QDoubleSpinBox, QFormLayout, QGroupBox, QTabWidget,
-        QGridLayout
+        QGridLayout, QAbstractItemView
     )
     from PyQt6.QtCore import Qt as _RealQt, pyqtSignal, QSize, QTimer, QThread
     from PyQt6.QtGui import QFont, QIcon, QColor, QPalette, QPainter, QPen, QBrush, QImage, QPixmap
@@ -191,6 +191,17 @@ except ImportError:
         def setSectionResizeMode(self, *args): pass
         def setStretchLastSection(self, *args): pass
         
+    class QAbstractItemView:
+        class EditTrigger:
+            NoEditTriggers = 0
+            DoubleClicked = 1
+            EditKeyPressed = 2
+            AnyKeyPressed = 3
+        class SelectionBehavior:
+            SelectItems = 0
+            SelectRows = 1
+            SelectColumns = 2
+        
     class QMessageBox:
         StandardButton = object()
         Yes = 16384
@@ -223,6 +234,17 @@ except ImportError:
         def text(self) -> str: return ""
         
     class QFrame:
+        class Shape:
+            NoFrame = 0
+            Box = 1
+            Panel = 2
+            StyledPanel = 3
+            HLine = 4
+            VLine = 5
+        class Shadow:
+            Plain = 16
+            Raised = 32
+            Sunken = 48
         def __init__(self, *args, **kwargs): pass
         def setFrameShape(self, *args): pass
         def setFrameShadow(self, *args): pass

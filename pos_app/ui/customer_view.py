@@ -55,8 +55,8 @@ class CustomerView(QWidget):
         self.customers_table.setColumnCount(4)
         self.customers_table.setHorizontalHeaderLabels(["Name", "Phone Number", "Email Profile", "Loyalty Pts"])
         self.customers_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.customers_table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.customers_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.customers_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.customers_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.customers_table.cellClicked.connect(self.on_customer_row_clicked)
         self.list_layout.addWidget(self.customers_table)
 
@@ -97,8 +97,8 @@ class CustomerView(QWidget):
         self.history_table.setColumnCount(3)
         self.history_table.setHorizontalHeaderLabels(["Invoice No", "Date", "Grand Total"])
         self.history_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.history_table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.history_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.history_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.history_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.history_layout.addWidget(self.history_table)
 
         self.right_layout.addWidget(self.history_box, stretch=1)
