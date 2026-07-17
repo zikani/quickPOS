@@ -1,4 +1,5 @@
 from pos_app.ui.mock_pyqt import *
+from pos_app.ui.icon_helper import get_icon
 from pos_app.models.product import Product
 from pos_app.models.category import Category
 
@@ -56,7 +57,8 @@ class InventoryView(QWidget):
         self.category_combo.currentIndexChanged.connect(self.on_filter_changed)
         self.filter_layout.addWidget(self.category_combo, stretch=2)
 
-        self.btn_add_product = QPushButton("+ Add Product", self.filter_box)
+        self.btn_add_product = QPushButton("Add Product", self.filter_box)
+        self.btn_add_product.setIcon(get_icon("add"))
         self.btn_add_product.setStyleSheet("background-color: #22c55e; color: white; padding: 6px 12px; font-weight: bold; border-radius: 4px;")
         self.btn_add_product.clicked.connect(self.on_add_product_clicked)
         self.filter_layout.addWidget(self.btn_add_product)
@@ -122,6 +124,7 @@ class InventoryView(QWidget):
         self.adjust_layout.addRow("Reason:", self.adjust_reason)
 
         self.btn_adjust = QPushButton("Apply Adjustment", self.adjust_card)
+        self.btn_adjust.setIcon(get_icon("edit"))
         self.btn_adjust.setStyleSheet("background-color: #f59e0b; color: white; padding: 8px; font-weight: bold; border-radius: 4px;")
         self.btn_adjust.clicked.connect(self.on_adjust_stock_clicked)
         self.adjust_layout.addRow(self.btn_adjust)
@@ -166,12 +169,14 @@ class InventoryView(QWidget):
         
         # Top action toolbar
         self.po_toolbar = QHBoxLayout()
-        self.btn_draft_po = QPushButton("+ New Purchase Order", self.po_left)
+        self.btn_draft_po = QPushButton("New Purchase Order", self.po_left)
+        self.btn_draft_po.setIcon(get_icon("add"))
         self.btn_draft_po.setStyleSheet("background-color: #22c55e; color: white; padding: 6px 12px; font-weight: bold; border-radius: 4px;")
         self.btn_draft_po.clicked.connect(self.on_create_po_clicked)
         self.po_toolbar.addWidget(self.btn_draft_po)
         
         self.btn_refresh_po = QPushButton("Refresh Orders", self.po_left)
+        self.btn_refresh_po.setIcon(get_icon("sync"))
         self.btn_refresh_po.setStyleSheet("background-color: #3b82f6; color: white; padding: 6px 12px; font-weight: bold; border-radius: 4px;")
         self.btn_refresh_po.clicked.connect(self.refresh_purchase_orders)
         self.po_toolbar.addWidget(self.btn_refresh_po)
@@ -226,12 +231,14 @@ class InventoryView(QWidget):
         self.po_actions_layout.setSpacing(10)
         
         self.btn_cancel_po = QPushButton("Cancel/Void PO", self.po_right)
+        self.btn_cancel_po.setIcon(get_icon("void"))
         self.btn_cancel_po.setStyleSheet("background-color: #ef4444; color: white; padding: 10px; font-weight: bold; border-radius: 4px;")
         self.btn_cancel_po.setEnabled(False)
         self.btn_cancel_po.clicked.connect(self.on_cancel_po_clicked)
         self.po_actions_layout.addWidget(self.btn_cancel_po, stretch=1)
         
         self.btn_receive_po = QPushButton("Receive Stock", self.po_right)
+        self.btn_receive_po.setIcon(get_icon("shopping_cart"))
         self.btn_receive_po.setStyleSheet("background-color: #22c55e; color: white; padding: 10px; font-weight: bold; border-radius: 4px;")
         self.btn_receive_po.setEnabled(False)
         self.btn_receive_po.clicked.connect(self.on_receive_po_clicked)
@@ -349,7 +356,7 @@ class InventoryView(QWidget):
             return
             
         dialog = ProductFormDialog(categories, self)
-        if dialog.exec() == QDialog.Accepted:
+        if dialog.exec() == QDialog.DialogCode.Accepted:
             sku, barcode, name, cat_id, cost, sell, stock, reorder, unit = dialog.get_product_data()
             try:
                 self.inventory_service.create_product(
@@ -503,11 +510,13 @@ class ProductFormDialog(QDialog):
         self.btn_layout.setSpacing(10)
         
         self.cancel_btn = QPushButton("Cancel", self)
+        self.cancel_btn.setIcon(get_icon("close_error"))
         self.cancel_btn.setStyleSheet("background-color: #cbd5e1; color: #1e293b; font-weight: bold; padding: 10px; border-radius: 4px;")
         self.cancel_btn.clicked.connect(self.reject)
         self.btn_layout.addWidget(self.cancel_btn)
         
         self.ok_btn = QPushButton("Create and Seed", self)
+        self.ok_btn.setIcon(get_icon("check_success"))
         self.ok_btn.setStyleSheet("background-color: #22c55e; color: white; font-weight: bold; padding: 10px; border-radius: 4px;")
         self.ok_btn.clicked.connect(self.on_ok_clicked)
         self.btn_layout.addWidget(self.ok_btn)

@@ -1,4 +1,5 @@
 from pos_app.ui.mock_pyqt import *
+from pos_app.ui.icon_helper import get_icon
 from pos_app.core.session import session
 from pos_app.models.product import Product
 from pos_app.models.customer import Customer
@@ -46,11 +47,13 @@ class POSView(QWidget):
         self.search_layout.addWidget(self.search_input)
 
         self.search_btn = QPushButton("Search", self.search_box)
+        self.search_btn.setIcon(get_icon("search"))
         self.search_btn.setStyleSheet("background-color: #3b82f6; color: white; padding: 6px 12px; font-weight: bold; border-radius: 4px;")
         self.search_btn.clicked.connect(self.on_search_triggered)
         self.search_layout.addWidget(self.search_btn)
 
-        self.camera_scan_btn = QPushButton("📷 Scan with Camera", self.search_box)
+        self.camera_scan_btn = QPushButton("Scan", self.search_box)
+        self.camera_scan_btn.setIcon(get_icon("scan"))
         self.camera_scan_btn.setStyleSheet("background-color: #ec4899; color: white; padding: 6px 12px; font-weight: bold; border-radius: 4px;")
         self.camera_scan_btn.clicked.connect(self.on_camera_scan_clicked)
         self.search_layout.addWidget(self.camera_scan_btn)
@@ -181,16 +184,19 @@ class POSView(QWidget):
         self.actions_layout.setSpacing(8)
 
         self.btn_park = QPushButton("Hold Sale", self.right_panel)
+        self.btn_park.setIcon(get_icon("hold_order"))
         self.btn_park.setStyleSheet("background-color: #64748b; color: white; padding: 10px; font-weight: bold; border-radius: 5px;")
         self.btn_park.clicked.connect(self.on_hold_clicked)
         self.actions_layout.addWidget(self.btn_park)
 
         self.btn_resume = QPushButton("Resume", self.right_panel)
+        self.btn_resume.setIcon(get_icon("shopping_cart"))
         self.btn_resume.setStyleSheet("background-color: #475569; color: white; padding: 10px; font-weight: bold; border-radius: 5px;")
         self.btn_resume.clicked.connect(self.on_resume_clicked)
         self.actions_layout.addWidget(self.btn_resume)
 
         self.btn_void = QPushButton("Clear Cart", self.right_panel)
+        self.btn_void.setIcon(get_icon("void"))
         self.btn_void.setStyleSheet("background-color: #ef4444; color: white; padding: 10px; font-weight: bold; border-radius: 5px;")
         self.btn_void.clicked.connect(self.on_clear_cart_clicked)
         self.actions_layout.addWidget(self.btn_void)
@@ -198,6 +204,7 @@ class POSView(QWidget):
         self.right_layout.addLayout(self.actions_layout)
 
         self.btn_checkout = QPushButton("Pay & Complete Checkout", self.right_panel)
+        self.btn_checkout.setIcon(get_icon("card_payment"))
         self.btn_checkout.setStyleSheet("background-color: #22c55e; color: white; padding: 14px; font-size: 15px; font-weight: bold; border-radius: 6px; margin-top: 5px;")
         self.btn_checkout.clicked.connect(self.on_checkout_clicked)
         self.right_layout.addWidget(self.btn_checkout)
@@ -219,6 +226,7 @@ class POSView(QWidget):
             self.products_table.setItem(index, 2, QTableWidgetItem(f"${prod.sell_price:.2f}"))
             
             add_btn = QPushButton("Add", self.products_table)
+            add_btn.setIcon(get_icon("add"))
             add_btn.setStyleSheet("background-color: #3b82f6; color: white; max-height: 22px; font-weight: bold; border-radius: 3px;")
             add_btn.clicked.connect(lambda checked=False, p_id=prod.id: self.add_by_id(p_id))
             self.products_table.setCellWidget(index, 3, add_btn)
@@ -264,7 +272,7 @@ class POSView(QWidget):
             return
 
         dialog = CameraScannerDialog(self)
-        if dialog.exec() == QDialog.Accepted and dialog.barcode:
+        if dialog.exec() == QDialog.DialogCode.Accepted and dialog.barcode:
             barcode_str = dialog.barcode
             # Find and add product matching decoded barcode
             match = self.product_repo.get_by_barcode(barcode_str)
@@ -400,7 +408,7 @@ class POSView(QWidget):
         
         # Launch checkout payment processing modal
         dialog = PaymentDialog(subtotal, self)
-        if dialog.exec() == QDialog.Accepted:
+        if dialog.exec() == QDialog.DialogCode.Accepted:
             method, ref = dialog.get_payment_details()
             
             # Format arguments matching SalesService.process_checkout

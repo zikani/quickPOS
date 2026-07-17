@@ -1,4 +1,5 @@
 from pos_app.ui.mock_pyqt import *
+from pos_app.ui.icon_helper import get_icon
 from pos_app.models.customer import Customer
 from pos_app.models.sale import Sale
 
@@ -37,7 +38,8 @@ class CustomerView(QWidget):
         self.search_input.textChanged.connect(self.refresh_customer_list)
         self.filter_layout.addWidget(self.search_input, stretch=3)
 
-        self.btn_add_customer = QPushButton("+ Add Customer", self.filter_box)
+        self.btn_add_customer = QPushButton("Add Customer", self.filter_box)
+        self.btn_add_customer.setIcon(get_icon("add"))
         self.btn_add_customer.setStyleSheet("background-color: #22c55e; color: white; padding: 6px 12px; font-weight: bold; border-radius: 4px;")
         self.btn_add_customer.clicked.connect(self.on_add_customer_clicked)
         self.filter_layout.addWidget(self.btn_add_customer)
@@ -154,7 +156,7 @@ class CustomerView(QWidget):
     def on_add_customer_clicked(self):
         """Launch Customer registration overlay form."""
         dialog = CustomerFormDialog(self)
-        if dialog.exec() == QDialog.Accepted:
+        if dialog.exec() == QDialog.DialogCode.Accepted:
             name, phone, email = dialog.get_customer_data()
             try:
                 self.customer_service.create_customer(name=name, phone=phone, email=email)
@@ -202,11 +204,13 @@ class CustomerFormDialog(QDialog):
         self.btn_layout.setSpacing(10)
         
         self.cancel_btn = QPushButton("Cancel", self)
+        self.cancel_btn.setIcon(get_icon("close_error"))
         self.cancel_btn.setStyleSheet("background-color: #cbd5e1; color: #1e293b; font-weight: bold; padding: 10px; border-radius: 4px;")
         self.cancel_btn.clicked.connect(self.reject)
         self.btn_layout.addWidget(self.cancel_btn)
         
         self.ok_btn = QPushButton("Register Customer", self)
+        self.ok_btn.setIcon(get_icon("check_success"))
         self.ok_btn.setStyleSheet("background-color: #22c55e; color: white; font-weight: bold; padding: 10px; border-radius: 4px;")
         self.ok_btn.clicked.connect(self.on_ok_clicked)
         self.btn_layout.addWidget(self.ok_btn)

@@ -1,3 +1,4 @@
+import os
 from pos_app.models.sale import Sale
 from pos_app.config.settings import settings
 

@@ -103,6 +103,9 @@ except ImportError:
         def hide(self): pass
         
     class QDialog:
+        class DialogCode:
+            Accepted = 1
+            Rejected = 0
         def __init__(self, parent=None, *args, **kwargs): pass
         def setWindowTitle(self, *args): pass
         def setMinimumSize(self, *args): pass

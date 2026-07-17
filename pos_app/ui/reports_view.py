@@ -1,4 +1,5 @@
 from pos_app.ui.mock_pyqt import *
+from pos_app.ui.icon_helper import get_icon
 
 class ReportsView(QWidget):
     """Admin dashboard presenting aggregated metrics, cashier performance, and bestseller summaries."""
@@ -137,6 +138,7 @@ class ReportsView(QWidget):
         self.footer_layout.setSpacing(10)
 
         self.btn_refresh = QPushButton("Refresh Data", self.footer_box)
+        self.btn_refresh.setIcon(get_icon("sync"))
         self.btn_refresh.setStyleSheet("background-color: #475569; color: white; padding: 10px 18px; font-weight: bold; border-radius: 4px;")
         self.btn_refresh.clicked.connect(self.refresh_dashboard)
         self.footer_layout.addWidget(self.btn_refresh)
@@ -144,11 +146,13 @@ class ReportsView(QWidget):
         self.footer_layout.addStretch()
 
         self.btn_export_pdf = QPushButton("Export PDF Summary", self.footer_box)
+        self.btn_export_pdf.setIcon(get_icon("receipt"))
         self.btn_export_pdf.setStyleSheet("background-color: #3b82f6; color: white; padding: 10px 18px; font-weight: bold; border-radius: 4px;")
         self.btn_export_pdf.clicked.connect(self.on_export_pdf_clicked)
         self.footer_layout.addWidget(self.btn_export_pdf)
 
         self.btn_export_excel = QPushButton("Export Excel Sheets", self.footer_box)
+        self.btn_export_excel.setIcon(get_icon("table_dine_in"))
         self.btn_export_excel.setStyleSheet("background-color: #16a34a; color: white; padding: 10px 18px; font-weight: bold; border-radius: 4px;")
         self.btn_export_excel.clicked.connect(self.on_export_excel_clicked)
         self.footer_layout.addWidget(self.btn_export_excel)
